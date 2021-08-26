@@ -410,10 +410,12 @@ static void npcm7xx_write_adc_calibration(NPCM7xxState *s)
 }
 #endif
 
+#ifdef IGNORE_A9MPCORE
 static qemu_irq npcm7xx_irq(NPCM7xxState *s, int n)
 {
     return qdev_get_gpio_in(DEVICE(&s->a9mpcore), n);
 }
+#endif
 
 static void npcm7xx_init(Object *obj)
 {
@@ -425,7 +427,9 @@ static void npcm7xx_init(Object *obj)
                                 ARM_CPU_TYPE_NAME("arm926"));
     }
 
+#ifdef IGNORE_A9MPCORE
     object_initialize_child(obj, "a9mpcore", &s->a9mpcore, TYPE_A9MPCORE_PRIV);
+#endif
 #ifdef INGORE_GCR
     object_initialize_child(obj, "gcr", &s->gcr, TYPE_NPCM7XX_GCR);
     object_property_add_alias(obj, "power-on-straps", OBJECT(&s->gcr),
@@ -511,6 +515,7 @@ static void npcm7xx_realize(DeviceState *dev, Error **errp)
 
     /* CPUs */
     for (i = 0; i < nc->num_cpus; i++) {
+#ifdef IGNORE_CPU
         object_property_set_int(OBJECT(&s->cpu[i]), "mp-affinity",
                                 arm_cpu_mp_affinity(i, WPCM450_MAX_NUM_CPUS),
                                 &error_abort);
@@ -524,12 +529,14 @@ static void npcm7xx_realize(DeviceState *dev, Error **errp)
             object_property_set_bool(OBJECT(&s->cpu[i]), "has_el3", false,
                                      &error_abort);
         }
+#endif
 
         if (!qdev_realize(DEVICE(&s->cpu[i]), NULL, errp)) {
             return;
         }
     }
 
+#ifdef IGNORE_A9MPCORE
     /* A9MPCORE peripherals. Can only fail if we pass bad parameters here. */
     object_property_set_int(OBJECT(&s->a9mpcore), "num-cpu", nc->num_cpus,
                             &error_abort);
@@ -544,6 +551,7 @@ static void npcm7xx_realize(DeviceState *dev, Error **errp)
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->a9mpcore), i + nc->num_cpus,
                            qdev_get_gpio_in(DEVICE(&s->cpu[i]), ARM_CPU_FIQ));
     }
+#endif
 
 #ifdef IGNORE_L2C
     /* L2 cache controller */
@@ -626,7 +634,7 @@ static void npcm7xx_realize(DeviceState *dev, Error **errp)
     /* UART0..3 (16550 compatible) */
     for (i = 0; i < ARRAY_SIZE(npcm7xx_uart_addr); i++) {
         serial_mm_init(get_system_memory(), npcm7xx_uart_addr[i], 2,
-                       npcm7xx_irq(s, WPCM450_UART0_IRQ + i), 115200,
+                       NULL, 115200,
                        serial_hd(i), DEVICE_LITTLE_ENDIAN);
     }
 
