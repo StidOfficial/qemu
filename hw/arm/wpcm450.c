@@ -417,7 +417,7 @@ static qemu_irq npcm7xx_irq(NPCM7xxState *s, int n)
 }
 #endif
 
-static void npcm7xx_init(Object *obj)
+static void wpcm450_init(Object *obj)
 {
     NPCM7xxState *s = WPCM450(obj);
     int i;
@@ -501,7 +501,7 @@ static void npcm7xx_init(Object *obj)
 #endif
 }
 
-static void npcm7xx_realize(DeviceState *dev, Error **errp)
+static void wpcm450_realize(DeviceState *dev, Error **errp)
 {
     NPCM7xxState *s = WPCM450(dev);
     NPCM7xxClass *nc = WPCM450_GET_CLASS(s);
@@ -849,11 +849,11 @@ static Property npcm7xx_properties[] = {
     DEFINE_PROP_END_OF_LIST(),
 };
 
-static void npcm7xx_class_init(ObjectClass *oc, void *data)
+static void wpcm450_class_init(ObjectClass *oc, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(oc);
 
-    dc->realize = npcm7xx_realize;
+    dc->realize = wpcm450_realize;
     dc->user_creatable = false;
     device_class_set_props(dc, npcm7xx_properties);
 }
@@ -869,11 +869,11 @@ static void npcm730_class_init(ObjectClass *oc, void *data)
 }
 #endif
 
-static void npcm750_class_init(ObjectClass *oc, void *data)
+static void nuvoton_wpcm450_class_init(ObjectClass *oc, void *data)
 {
     NPCM7xxClass *nc = WPCM450_CLASS(oc);
 
-    /* Nuvoton WPCM450 has 2 cores and a full set of peripherals */
+    /* Nuvoton WPCM450 has 1 cores and a full set of peripherals */
     nc->disabled_modules = 0x00000000;
     nc->num_cpus = 1;
 }
@@ -883,9 +883,9 @@ static const TypeInfo wpcm450_soc_types[] = {
         .name           = TYPE_WPCM450,
         .parent         = TYPE_DEVICE,
         .instance_size  = sizeof(NPCM7xxState),
-        .instance_init  = npcm7xx_init,
+        .instance_init  = wpcm450_init,
         .class_size     = sizeof(NPCM7xxClass),
-        .class_init     = npcm7xx_class_init,
+        .class_init     = wpcm450_class_init,
         .abstract       = true,
     },/* {
         .name           = TYPE_NPCM730,
@@ -894,7 +894,7 @@ static const TypeInfo wpcm450_soc_types[] = {
     }, */{
         .name           = TYPE_NUVOTON_WPCM450,
         .parent         = TYPE_WPCM450,
-        .class_init     = npcm750_class_init,
+        .class_init     = nuvoton_wpcm450_class_init,
     },
 };
 
