@@ -76,9 +76,9 @@ enum wpcm450_interrupt {
 };
 
 /* Register base address for each Timer Module */
-static const hwaddr wpcm450_tim_addr[] = {
+/*static const hwaddr wpcm450_tim_addr[] = {
     0xb8001000,
-};
+};*/
 
 /* Register base address for each 16550 UART */
 static const hwaddr wpcm450_uart_addr[] = {
@@ -88,6 +88,7 @@ static const hwaddr wpcm450_uart_addr[] = {
 
 /* Primary interrupt controller.  */
 
+#ifdef IGNORE_PIC
 // To Be Remove
 static void wpcm450_soc_update(WPCM450State *s)
 {
@@ -184,6 +185,7 @@ static const MemoryRegionOps wpcm450_soc_ops = {
     .write = wpcm450_soc_write,
     .endianness = DEVICE_NATIVE_ENDIAN,
 };
+#endif
 
 /*static qemu_irq wpcm450_irq(WPCM450State *s, int n)
 {
@@ -196,7 +198,7 @@ void wpcm450_soc_init(MachineState *machine, WPCM450State *s)
 
     s->cpu = ARM_CPU(s);
 
-    DeviceState *dev = sysbus_create_varargs("pl190", 0x10140000,
+    /*DeviceState *dev = sysbus_create_varargs("pl190", 0x10140000,
                                 qdev_get_gpio_in(DEVICE(s->cpu), ARM_CPU_IRQ),
                                 qdev_get_gpio_in(DEVICE(s->cpu), ARM_CPU_FIQ),
                                 NULL);
@@ -204,19 +206,19 @@ void wpcm450_soc_init(MachineState *machine, WPCM450State *s)
     qemu_irq pic[WPCM450_NUM_IRQ];
     for (i = 0; i < WPCM450_NUM_IRQ; i++) {
         pic[i] = qdev_get_gpio_in(dev, i);
-    }
+    }*/
 
     /* UARTs */
     for (i = 0; i < ARRAY_SIZE(wpcm450_uart_addr); i++) {
         serial_mm_init(get_system_memory(), wpcm450_uart_addr[i], 2,
-                       pic[WPCM450_UART0_IRQ + i], 115200,
+                       NULL, 115200,
                        serial_hd(i), DEVICE_LITTLE_ENDIAN);
     }
 
     /* Timers */
-    for (i = 0; i < ARRAY_SIZE(wpcm450_tim_addr); i++) {
-        //sysbus_create_simple("sp804", wpcm450_tim_addr[i], pic[WPCM450_TIMER0_IRQ + 1]);
-    }
+    /*for (i = 0; i < ARRAY_SIZE(wpcm450_tim_addr); i++) {
+        sysbus_create_simple("sp804", wpcm450_tim_addr[i], pic[WPCM450_TIMER0_IRQ + 1]);
+    }*/
 }
 
 // To Be Remove END
@@ -236,7 +238,7 @@ void wpcm450_load_kernel(MachineState *machine, WPCM450State *soc)
 
 static void wpcm450_init(Object *obj)
 {
-    WPCM450State *s = WPCM450(obj);
+    /*WPCM450State *s = WPCM450(obj);
     int i;
 
     object_initialize_child(obj, "tim[*]", &s->tim[0], TYPE_NPCM7XX_TIMER);
@@ -248,13 +250,13 @@ static void wpcm450_init(Object *obj)
     for (i = 0; i < WPCM450_NUM_IRQ; i++) {
         sysbus_init_irq(sbd, &s->parent[i]);
     }
-    s->irq = WPCM450_NUM_IRQ - 1;
+    s->irq = WPCM450_NUM_IRQ - 1;*/
 
     /* Core memory */
 
-    memory_region_init_io(&s->iomem, obj, &wpcm450_soc_ops, s,
+    /*memory_region_init_io(&s->iomem, obj, &wpcm450_soc_ops, s,
                         "vpb-sic", 0x1000);
-    sysbus_init_mmio(sbd, &s->iomem);
+    sysbus_init_mmio(sbd, &s->iomem);*/
 }
 
 static void wpcm450_realize(DeviceState *dev, Error **errp)
