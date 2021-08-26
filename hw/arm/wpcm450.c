@@ -503,13 +503,11 @@ static void npcm7xx_realize(DeviceState *dev, Error **errp)
     NPCM7xxClass *nc = WPCM450_GET_CLASS(s);
     int i;
 
-#ifdef IGNORE_DRAM
     if (memory_region_size(s->dram) > NPCM7XX_DRAM_SZ) {
         error_setg(errp, "%s: NPCM7xx cannot address more than %" PRIu64
                    " MiB of DRAM", __func__, NPCM7XX_DRAM_SZ / MiB);
         return;
     }
-#endif
 
     /* CPUs */
     for (i = 0; i < nc->num_cpus; i++) {
@@ -838,10 +836,8 @@ static void npcm7xx_realize(DeviceState *dev, Error **errp)
 }
 
 static Property npcm7xx_properties[] = {
-#ifdef IGNORE_DRAM
     DEFINE_PROP_LINK("dram-mr", NPCM7xxState, dram, TYPE_MEMORY_REGION,
                      MemoryRegion *),
-#endif
     DEFINE_PROP_END_OF_LIST(),
 };
 

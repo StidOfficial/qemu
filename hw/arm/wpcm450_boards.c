@@ -76,7 +76,6 @@ static void npcm7xx_connect_flash(NPCM7xxFIUState *fiu, int cs_no,
 }
 #endif
 
-#ifdef IGNORE_DRAM
 static void npcm7xx_connect_dram(NPCM7xxState *soc, MemoryRegion *dram)
 {
     memory_region_add_subregion(get_system_memory(), NPCM7XX_DRAM_BA, dram);
@@ -84,7 +83,6 @@ static void npcm7xx_connect_dram(NPCM7xxState *soc, MemoryRegion *dram)
     object_property_set_link(OBJECT(soc), "dram-mr", OBJECT(dram),
                              &error_abort);
 }
-#endif
 
 static NPCM7xxState *npcm7xx_create_soc(MachineState *machine,
                                         uint32_t hw_straps)
@@ -338,9 +336,7 @@ static void idrac6_bmc_init(MachineState *machine)
     NPCM7xxState *soc;
 
     soc = npcm7xx_create_soc(machine, NPCM750_EVB_POWER_ON_STRAPS);
-#ifdef IGNORE_DRAM
     npcm7xx_connect_dram(soc, machine->ram);
-#endif
     qdev_realize(DEVICE(soc), NULL, &error_fatal);
 
 #ifdef IGNORE_IROM
