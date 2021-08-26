@@ -160,7 +160,7 @@ static const hwaddr npcm7xx_tim_addr[] = {
 #endif
 
 /* Register base address for each 16550 UART */
-static const hwaddr npcm7xx_uart_addr[] = {
+static const hwaddr wpcm450_uart_addr[] = {
     0xb8000000,
     0xb8000100,
 };
@@ -631,9 +631,9 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     }
 #endif
 
-    /* UART0..3 (16550 compatible) */
-    for (i = 0; i < ARRAY_SIZE(npcm7xx_uart_addr); i++) {
-        serial_mm_init(get_system_memory(), npcm7xx_uart_addr[i], 2,
+    /* UART0..1 (16550 compatible) */
+    for (i = 0; i < ARRAY_SIZE(wpcm450_uart_addr); i++) {
+        serial_mm_init(get_system_memory(), wpcm450_uart_addr[i], 2,
                        NULL, 115200,
                        serial_hd(i), DEVICE_LITTLE_ENDIAN);
     }
