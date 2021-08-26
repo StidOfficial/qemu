@@ -33,7 +33,9 @@ static void a9mp_priv_initfn(Object *obj)
     memory_region_init(&s->container, obj, "a9mp-priv-container", 0x2000);
     sysbus_init_mmio(SYS_BUS_DEVICE(obj), &s->container);
 
+#ifdef IGNORE_SCU
     object_initialize_child(obj, "scu", &s->scu, TYPE_A9_SCU);
+#endif
 
     object_initialize_child(obj, "gic", &s->gic, TYPE_ARM_GIC);
 
@@ -48,8 +50,8 @@ static void a9mp_priv_realize(DeviceState *dev, Error **errp)
 {
     SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
     A9MPPrivState *s = A9MPCORE_PRIV(dev);
-    DeviceState *scudev, *gicdev, *gtimerdev, *mptimerdev, *wdtdev;
-    SysBusDevice *scubusdev, *gicbusdev, *gtimerbusdev, *mptimerbusdev,
+    DeviceState /**scudev,*/ *gicdev, *gtimerdev, *mptimerdev, *wdtdev;
+    SysBusDevice /**scubusdev,*/ *gicbusdev, *gtimerbusdev, *mptimerbusdev,
                  *wdtbusdev;
     int i;
     bool has_el3;
@@ -58,19 +60,22 @@ static void a9mp_priv_realize(DeviceState *dev, Error **errp)
 
     cpu0 = qemu_get_cpu(0);
     cpuobj = OBJECT(cpu0);
-    if (strcmp(object_get_typename(cpuobj), ARM_CPU_TYPE_NAME("cortex-a9"))) {
+    if (strcmp(object_get_typename(cpuobj), ARM_CPU_TYPE_NAME("cortex-a9")) &&
+        strcmp(object_get_typename(cpuobj), ARM_CPU_TYPE_NAME("arm926"))) {
         /* We might allow Cortex-A5 once we model it */
         error_setg(errp,
-                   "Cortex-A9MPCore peripheral can only use Cortex-A9 CPU");
+                   "Cortex-A9MPCore peripheral can only use Cortex-A9 or ARM926 CPU");
         return;
     }
 
+#ifdef IGNORE_SCU
     scudev = DEVICE(&s->scu);
     qdev_prop_set_uint32(scudev, "num-cpu", s->num_cpu);
     if (!sysbus_realize(SYS_BUS_DEVICE(&s->scu), errp)) {
         return;
     }
     scubusdev = SYS_BUS_DEVICE(&s->scu);
+#endif
 
     gicdev = DEVICE(&s->gic);
     qdev_prop_set_uint32(gicdev, "num-cpu", s->num_cpu);
@@ -126,8 +131,10 @@ static void a9mp_priv_realize(DeviceState *dev, Error **errp)
      *  0x0700-0x0fff -- nothing
      *  0x1000-0x1fff -- GIC Distributor
      */
+#ifdef IGNORE_SCU
     memory_region_add_subregion(&s->container, 0,
                                 sysbus_mmio_get_region(scubusdev, 0));
+#endif
     /* GIC CPU interface */
     memory_region_add_subregion(&s->container, 0x100,
                                 sysbus_mmio_get_region(gicbusdev, 1));
