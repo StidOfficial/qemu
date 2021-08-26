@@ -162,7 +162,7 @@ static const hwaddr npcm7xx_tim_addr[] = {
 /* Register base address for each 16550 UART */
 static const hwaddr npcm7xx_uart_addr[] = {
     0xb8000000,
-    0xb8001000,
+    0xb8000100,
 };
 
 #ifdef IGNORE_FIU
