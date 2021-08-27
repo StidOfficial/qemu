@@ -42,7 +42,7 @@
 #define NPCM7XX_L2C_BA          (0xf03fc000)
 #define NPCM7XX_CPUP_BA         (0xf03fe000)
 #define NPCM7XX_GCR_BA          (0xf0800000)
-#define NPCM7XX_CLK_BA          (0xf0801000)
+#define WPCM450_CLK_BA          (0xb0000200)
 #define NPCM7XX_MC_BA           (0xf0824000)
 #define NPCM7XX_RNG_BA          (0xf000b000)
 
@@ -144,20 +144,19 @@ enum NPCM7xxInterrupt {
 #endif
 enum WPCM45Interrupt {
     WPCM450_UART0_IRQ = 7,
-    WPCM450_UART1_IRQ
+    WPCM450_UART1_IRQ,
+    WPCM450_TIMER0_IRQ = 12,
+    WPCM450_TIMER1_IRQ,
+    WPCM450_TIMER2_3_4_IRQ,
 };
 
 /* Total number of GIC interrupts, including internal ARM926EJ-S interrupts. */
 #define NPCM7XX_NUM_IRQ         (64) // 32, cause problems with GIC
 
-#ifdef IGNORE_TIMER
 /* Register base address for each Timer Module */
-static const hwaddr npcm7xx_tim_addr[] = {
-    0xf0008000,
-    0xf0009000,
-    0xf000a000,
+static const hwaddr wpcm450_tim_addr[] = {
+    0xb8001000,
 };
-#endif
 
 /* Register base address for each 16550 UART */
 static const hwaddr wpcm450_uart_addr[] = {
@@ -435,9 +434,7 @@ static void wpcm450_init(Object *obj)
     object_property_add_alias(obj, "power-on-straps", OBJECT(&s->gcr),
                               "power-on-straps");
 #endif
-#ifdef IGNORE_CLK
     object_initialize_child(obj, "clk", &s->clk, TYPE_NPCM7XX_CLK);
-#endif
 #ifdef IGNORE
     object_initialize_child(obj, "otp1", &s->key_storage,
                             TYPE_NPCM7XX_KEY_STORAGE);
@@ -450,11 +447,9 @@ static void wpcm450_init(Object *obj)
     object_initialize_child(obj, "adc", &s->adc, TYPE_NPCM7XX_ADC);
 #endif
 
-#ifdef IGNORE_TIMER
     for (i = 0; i < ARRAY_SIZE(s->tim); i++) {
         object_initialize_child(obj, "tim[*]", &s->tim[i], TYPE_NPCM7XX_TIMER);
     }
-#endif
 
 #ifdef IGNORE_GPIO
     for (i = 0; i < ARRAY_SIZE(s->gpio); i++) {
@@ -569,11 +564,9 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->gcr), 0, NPCM7XX_GCR_BA);
 #endif
 
-#ifdef IGNORE_CLK
     /* Clock Control Registers (CLK). Cannot fail. */
     sysbus_realize(SYS_BUS_DEVICE(&s->clk), &error_abort);
-    sysbus_mmio_map(SYS_BUS_DEVICE(&s->clk), 0, NPCM7XX_CLK_BA);
-#endif
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->clk), 0, WPCM450_CLK_BA);
 
 #ifdef IGNORE
     /* OTP key storage and fuse strap array. Cannot fail. */
@@ -599,21 +592,23 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     npcm7xx_write_adc_calibration(s);
 #endif
 
-#ifdef IGNORE_TIMER
     /* Timer Modules (TIM). Cannot fail. */
-    QEMU_BUILD_BUG_ON(ARRAY_SIZE(npcm7xx_tim_addr) != ARRAY_SIZE(s->tim));
+    QEMU_BUILD_BUG_ON(ARRAY_SIZE(wpcm450_tim_addr) != ARRAY_SIZE(s->tim));
     for (i = 0; i < ARRAY_SIZE(s->tim); i++) {
         SysBusDevice *sbd = SYS_BUS_DEVICE(&s->tim[i]);
+#ifdef IGNORE
         int first_irq;
         int j;
+#endif
 
         /* Connect the timer clock. */
         qdev_connect_clock_in(DEVICE(&s->tim[i]), "clock", qdev_get_clock_out(
                     DEVICE(&s->clk), "timer-clock"));
 
         sysbus_realize(sbd, &error_abort);
-        sysbus_mmio_map(sbd, 0, npcm7xx_tim_addr[i]);
+        sysbus_mmio_map(sbd, 0, wpcm450_tim_addr[i]);
 
+#ifdef IGNORE
         first_irq = NPCM7XX_TIMER0_IRQ + i * NPCM7XX_TIMERS_PER_CTRL;
         for (j = 0; j < NPCM7XX_TIMERS_PER_CTRL; j++) {
             qemu_irq irq = npcm7xx_irq(s, first_irq + j);
@@ -623,13 +618,13 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
         /* IRQ for watchdogs */
         sysbus_connect_irq(sbd, NPCM7XX_TIMERS_PER_CTRL,
                 npcm7xx_irq(s, NPCM7XX_WDG0_IRQ + i));
+#endif
         /* GPIO that connects clk module with watchdog */
         qdev_connect_gpio_out_named(DEVICE(&s->tim[i]),
                 NPCM7XX_WATCHDOG_RESET_GPIO_OUT, 0,
                 qdev_get_gpio_in_named(DEVICE(&s->clk),
                         NPCM7XX_WATCHDOG_RESET_GPIO_IN, i));
     }
-#endif
 
     /* UART0..1 (16550 compatible) */
     for (i = 0; i < ARRAY_SIZE(wpcm450_uart_addr); i++) {

@@ -107,7 +107,7 @@ typedef struct WPCM450State {
 
     NPCM7xxGCRState     gcr;
     NPCM7xxCLKState     clk;
-    NPCM7xxTimerCtrlState tim[3];
+    NPCM7xxTimerCtrlState tim[1];
     NPCM7xxADCState     adc;
     NPCM7xxPWMState     pwm[NPCM7XX_NR_PWM_MODULES];
     NPCM7xxMFTState     mft[8];
