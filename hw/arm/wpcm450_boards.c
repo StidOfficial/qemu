@@ -35,7 +35,7 @@
 #ifdef IGNORE_IROM
 static const char npcm7xx_default_bootrom[] = "npcm7xx_bootrom.bin";
 
-static void npcm7xx_load_bootrom(MachineState *machine, NPCM7xxState *soc)
+static void npcm7xx_load_bootrom(MachineState *machine, WPCM450State *soc)
 {
     const char *bios_name = machine->firmware ?: npcm7xx_default_bootrom;
     g_autofree char *filename = NULL;
@@ -76,7 +76,7 @@ static void npcm7xx_connect_flash(NPCM7xxFIUState *fiu, int cs_no,
 }
 #endif
 
-static void npcm7xx_connect_dram(NPCM7xxState *soc, MemoryRegion *dram)
+static void npcm7xx_connect_dram(WPCM450State *soc, MemoryRegion *dram)
 {
     memory_region_add_subregion(get_system_memory(), NPCM7XX_DRAM_BA, dram);
 
@@ -84,7 +84,7 @@ static void npcm7xx_connect_dram(NPCM7xxState *soc, MemoryRegion *dram)
                              &error_abort);
 }
 
-static NPCM7xxState *npcm7xx_create_soc(MachineState *machine,
+static WPCM450State *wpcm450_create_soc(MachineState *machine,
                                         uint32_t hw_straps)
 {
     WPCM450MachineClass *nmc = WPCM450_MACHINE_GET_CLASS(machine);
@@ -107,7 +107,7 @@ static NPCM7xxState *npcm7xx_create_soc(MachineState *machine,
 }
 
 #ifdef IGNORE_SMBUS
-static I2CBus *npcm7xx_i2c_get_bus(NPCM7xxState *soc, uint32_t num)
+static I2CBus *npcm7xx_i2c_get_bus(WPCM450State *soc, uint32_t num)
 {
     g_assert(num < ARRAY_SIZE(soc->smbus));
     return I2C_BUS(qdev_get_child_bus(DEVICE(&soc->smbus[num]), "i2c-bus"));
@@ -115,7 +115,7 @@ static I2CBus *npcm7xx_i2c_get_bus(NPCM7xxState *soc, uint32_t num)
 #endif
 
 #ifdef IGNORE
-static void at24c_eeprom_init(NPCM7xxState *soc, int bus, uint8_t addr,
+static void at24c_eeprom_init(WPCM450State *soc, int bus, uint8_t addr,
                               uint32_t rsize)
 {
     I2CBus *i2c_bus = npcm7xx_i2c_get_bus(soc, bus);
@@ -129,7 +129,7 @@ static void at24c_eeprom_init(NPCM7xxState *soc, int bus, uint8_t addr,
 
 #ifdef IGNORE_PWM
 static void npcm7xx_init_pwm_splitter(WPCM450Machine *machine,
-                                      NPCM7xxState *soc, const int *fan_counts)
+                                      WPCM450State *soc, const int *fan_counts)
 {
     SplitIRQ *splitters = machine->fan_splitter;
 
@@ -157,7 +157,7 @@ static void npcm7xx_init_pwm_splitter(WPCM450Machine *machine,
     }
 }
 
-static void npcm7xx_connect_pwm_fan(NPCM7xxState *soc, SplitIRQ *splitter,
+static void npcm7xx_connect_pwm_fan(WPCM450State *soc, SplitIRQ *splitter,
                                     int fan_no, int output_no)
 {
     DeviceState *fan;
@@ -188,7 +188,7 @@ static void npcm7xx_connect_pwm_fan(NPCM7xxState *soc, SplitIRQ *splitter,
 #endif
 
 #ifdef IGNORE_SMBUS
-static void idrac6_bmc_i2c_init(NPCM7xxState *soc)
+static void idrac6_bmc_i2c_init(WPCM450State *soc)
 {
     /* lm75 temperature sensor on SVB, tmp105 is compatible */
     i2c_slave_create_simple(npcm7xx_i2c_get_bus(soc, 0), "tmp105", 0x48);
@@ -202,7 +202,7 @@ static void idrac6_bmc_i2c_init(NPCM7xxState *soc)
 #endif
 
 #ifdef IGNORE_PWM
-static void idrac6_bmc_fan_init(WPCM450Machine *machine, NPCM7xxState *soc)
+static void idrac6_bmc_fan_init(WPCM450Machine *machine, WPCM450State *soc)
 {
     SplitIRQ *splitter = machine->fan_splitter;
     static const int fan_counts[] = {2, 2, 2, 2, 2, 2, 2, 2};
@@ -228,7 +228,7 @@ static void idrac6_bmc_fan_init(WPCM450Machine *machine, NPCM7xxState *soc)
 #endif
 
 #ifdef IGNORE
-static void quanta_gsj_i2c_init(NPCM7xxState *soc)
+static void quanta_gsj_i2c_init(WPCM450State *soc)
 {
     /* GSJ machine have 4 max31725 temperature sensors, tmp105 is compatible. */
     /*i2c_slave_create_simple(npcm7xx_i2c_get_bus(soc, 1), "tmp105", 0x5c);
@@ -255,7 +255,7 @@ static void quanta_gsj_i2c_init(NPCM7xxState *soc)
 #endif
 
 #ifdef IGNORE_PWM
-static void quanta_gsj_fan_init(WPCM450Machine *machine, NPCM7xxState *soc)
+static void quanta_gsj_fan_init(WPCM450Machine *machine, WPCM450State *soc)
 {
     SplitIRQ *splitter = machine->fan_splitter;
     static const int fan_counts[] = {2, 2, 2, 0, 0, 0, 0, 0};
@@ -271,7 +271,7 @@ static void quanta_gsj_fan_init(WPCM450Machine *machine, NPCM7xxState *soc)
 #endif
 
 #ifdef IGNORE
-static void quanta_gbs_i2c_init(NPCM7xxState *soc)
+static void quanta_gbs_i2c_init(WPCM450State *soc)
 {
     /*
      * i2c-0:
@@ -333,9 +333,9 @@ static void quanta_gbs_i2c_init(NPCM7xxState *soc)
 
 static void idrac6_bmc_init(MachineState *machine)
 {
-    NPCM7xxState *soc;
+    WPCM450State *soc;
 
-    soc = npcm7xx_create_soc(machine, NPCM750_EVB_POWER_ON_STRAPS);
+    soc = wpcm450_create_soc(machine, NPCM750_EVB_POWER_ON_STRAPS);
     npcm7xx_connect_dram(soc, machine->ram);
     qdev_realize(DEVICE(soc), NULL, &error_fatal);
 
@@ -357,7 +357,7 @@ static void idrac6_bmc_init(MachineState *machine)
 #ifdef IGNORE
 static void quanta_gsj_init(MachineState *machine)
 {
-    NPCM7xxState *soc;
+    WPCM450State *soc;
 
     soc = npcm7xx_create_soc(machine, QUANTA_GSJ_POWER_ON_STRAPS);
     npcm7xx_connect_dram(soc, machine->ram);
@@ -373,7 +373,7 @@ static void quanta_gsj_init(MachineState *machine)
 
 static void quanta_gbs_init(MachineState *machine)
 {
-    NPCM7xxState *soc;
+    WPCM450State *soc;
 
     soc = npcm7xx_create_soc(machine, QUANTA_GBS_POWER_ON_STRAPS);
     npcm7xx_connect_dram(soc, machine->ram);
@@ -391,14 +391,14 @@ static void quanta_gbs_init(MachineState *machine)
 
 static void wpcm450_set_soc_type(WPCM450MachineClass *nmc, const char *type)
 {
-    NPCM7xxClass *sc = WPCM450_CLASS(object_class_by_name(type));
+    WPCM450Class *sc = WPCM450_CLASS(object_class_by_name(type));
     MachineClass *mc = MACHINE_CLASS(nmc);
 
     nmc->soc_type = type;
     mc->default_cpus = mc->min_cpus = mc->max_cpus = sc->num_cpus;
 }
 
-static void npcm7xx_machine_class_init(ObjectClass *oc, void *data)
+static void wpcm450_machine_class_init(ObjectClass *oc, void *data)
 {
     MachineClass *mc = MACHINE_CLASS(oc);
 
@@ -451,13 +451,13 @@ static void gbs_bmc_machine_class_init(ObjectClass *oc, void *data)
 }
 #endif
 
-static const TypeInfo npcm7xx_machine_types[] = {
+static const TypeInfo wpcm450_machine_types[] = {
     {
         .name           = TYPE_WPCM450_MACHINE,
         .parent         = TYPE_MACHINE,
         .instance_size  = sizeof(WPCM450Machine),
         .class_size     = sizeof(WPCM450MachineClass),
-        .class_init     = npcm7xx_machine_class_init,
+        .class_init     = wpcm450_machine_class_init,
         .abstract       = true,
     }, {
         .name           = MACHINE_TYPE_NAME("idrac6-bmc"),
@@ -474,4 +474,4 @@ static const TypeInfo npcm7xx_machine_types[] = {
     },*/
 };
 
-DEFINE_TYPES(npcm7xx_machine_types)
+DEFINE_TYPES(wpcm450_machine_types)

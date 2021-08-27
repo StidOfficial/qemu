@@ -374,9 +374,9 @@ static struct arm_boot_info npcm7xx_binfo = {
 #endif
 };
 
-void wpcm450_load_kernel(MachineState *machine, NPCM7xxState *soc)
+void wpcm450_load_kernel(MachineState *machine, WPCM450State *soc)
 {
-    NPCM7xxClass *sc = WPCM450_GET_CLASS(soc);
+    WPCM450Class *sc = WPCM450_GET_CLASS(soc);
 
     npcm7xx_binfo.ram_size = machine->ram_size;
     npcm7xx_binfo.nb_cpus = sc->num_cpus;
@@ -385,9 +385,9 @@ void wpcm450_load_kernel(MachineState *machine, NPCM7xxState *soc)
 }
 
 #ifdef IGNORE
-static void npcm7xx_init_fuses(NPCM7xxState *s)
+static void npcm7xx_init_fuses(WPCM450State *s)
 {
-    NPCM7xxClass *nc = WPCM450_GET_CLASS(s);
+    WPCM450Class *nc = WPCM450_GET_CLASS(s);
     uint32_t value;
 
     /*
@@ -401,7 +401,7 @@ static void npcm7xx_init_fuses(NPCM7xxState *s)
 #endif
 
 #ifdef IGNORE_ADC
-static void npcm7xx_write_adc_calibration(NPCM7xxState *s)
+static void npcm7xx_write_adc_calibration(WPCM450State *s)
 {
     /* Both ADC and the fuse array must have realized. */
     QEMU_BUILD_BUG_ON(sizeof(s->adc.calibration_r_values) != 4);
@@ -411,7 +411,7 @@ static void npcm7xx_write_adc_calibration(NPCM7xxState *s)
 #endif
 
 #ifdef IGNORE_A9MPCORE
-static qemu_irq npcm7xx_irq(NPCM7xxState *s, int n)
+static qemu_irq npcm7xx_irq(WPCM450State *s, int n)
 {
     return qdev_get_gpio_in(DEVICE(&s->a9mpcore), n);
 }
@@ -419,7 +419,7 @@ static qemu_irq npcm7xx_irq(NPCM7xxState *s, int n)
 
 static void wpcm450_init(Object *obj)
 {
-    NPCM7xxState *s = WPCM450(obj);
+    WPCM450State *s = WPCM450(obj);
     int i;
 
     for (i = 0; i < WPCM450_MAX_NUM_CPUS; i++) {
@@ -503,12 +503,12 @@ static void wpcm450_init(Object *obj)
 
 static void wpcm450_realize(DeviceState *dev, Error **errp)
 {
-    NPCM7xxState *s = WPCM450(dev);
-    NPCM7xxClass *nc = WPCM450_GET_CLASS(s);
+    WPCM450State *s = WPCM450(dev);
+    WPCM450Class *nc = WPCM450_GET_CLASS(s);
     int i;
 
     if (memory_region_size(s->dram) > NPCM7XX_DRAM_SZ) {
-        error_setg(errp, "%s: NPCM7xx cannot address more than %" PRIu64
+        error_setg(errp, "%s: WPCM450 cannot address more than %" PRIu64
                    " MiB of DRAM", __func__, NPCM7XX_DRAM_SZ / MiB);
         return;
     }
@@ -844,7 +844,7 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
 }
 
 static Property npcm7xx_properties[] = {
-    DEFINE_PROP_LINK("dram-mr", NPCM7xxState, dram, TYPE_MEMORY_REGION,
+    DEFINE_PROP_LINK("dram-mr", WPCM450State, dram, TYPE_MEMORY_REGION,
                      MemoryRegion *),
     DEFINE_PROP_END_OF_LIST(),
 };
@@ -861,7 +861,7 @@ static void wpcm450_class_init(ObjectClass *oc, void *data)
 #ifdef IGNORE
 static void npcm730_class_init(ObjectClass *oc, void *data)
 {
-    NPCM7xxClass *nc = WPCM450_CLASS(oc);*/
+    WPCM450Class *nc = WPCM450_CLASS(oc);*/
 
     /* NPCM730 is optimized for data center use, so no graphics, etc. */
     nc->disabled_modules = 0x00300395;
@@ -871,7 +871,7 @@ static void npcm730_class_init(ObjectClass *oc, void *data)
 
 static void nuvoton_wpcm450_class_init(ObjectClass *oc, void *data)
 {
-    NPCM7xxClass *nc = WPCM450_CLASS(oc);
+    WPCM450Class *nc = WPCM450_CLASS(oc);
 
     /* Nuvoton WPCM450 has 1 cores and a full set of peripherals */
     nc->disabled_modules = 0x00000000;
@@ -882,9 +882,9 @@ static const TypeInfo wpcm450_soc_types[] = {
     {
         .name           = TYPE_WPCM450,
         .parent         = TYPE_DEVICE,
-        .instance_size  = sizeof(NPCM7xxState),
+        .instance_size  = sizeof(WPCM450State),
         .instance_init  = wpcm450_init,
-        .class_size     = sizeof(NPCM7xxClass),
+        .class_size     = sizeof(WPCM450Class),
         .class_init     = wpcm450_class_init,
         .abstract       = true,
     },/* {

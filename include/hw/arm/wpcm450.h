@@ -76,7 +76,7 @@ typedef struct WPCM450MachineClass {
 #define WPCM450_MACHINE_GET_CLASS(obj)                                  \
     OBJECT_GET_CLASS(WPCM450MachineClass, (obj), TYPE_WPCM450_MACHINE)
 
-typedef struct NPCM7xxState {
+typedef struct WPCM450State {
     DeviceState         parent;
 
     ARMCPU              cpu[WPCM450_MAX_NUM_CPUS];
@@ -103,27 +103,27 @@ typedef struct NPCM7xxState {
     OHCISysBusState     ohci;
     NPCM7xxFIUState     fiu[2];
     NPCM7xxEMCState     emc[2];
-} NPCM7xxState;
+} WPCM450State;
 
 #define TYPE_WPCM450    "wpcm450"
-#define WPCM450(obj)    OBJECT_CHECK(NPCM7xxState, (obj), TYPE_WPCM450)
+#define WPCM450(obj)    OBJECT_CHECK(WPCM450State, (obj), TYPE_WPCM450)
 
 #define TYPE_NPCM730    "npcm730"
 #define TYPE_NUVOTON_WPCM450    "nuvoton-wpcm450"
 
-typedef struct NPCM7xxClass {
+typedef struct WPCM450Class {
     DeviceClass         parent;
 
     /* Bitmask of modules that are permanently disabled on this chip. */
     uint32_t            disabled_modules;
     /* Number of CPU cores enabled in this SoC class (may be 1 or 2). */
     uint32_t            num_cpus;
-} NPCM7xxClass;
+} WPCM450Class;
 
 #define WPCM450_CLASS(klass)                                            \
-    OBJECT_CLASS_CHECK(NPCM7xxClass, (klass), TYPE_WPCM450)
+    OBJECT_CLASS_CHECK(WPCM450Class, (klass), TYPE_WPCM450)
 #define WPCM450_GET_CLASS(obj)                                          \
-    OBJECT_GET_CLASS(NPCM7xxClass, (obj), TYPE_WPCM450)
+    OBJECT_GET_CLASS(WPCM450Class, (obj), TYPE_WPCM450)
 
 /**
  * wpcm450_load_kernel - Loads memory with everything needed to boot
@@ -134,6 +134,6 @@ typedef struct NPCM7xxClass {
  * derivative and call arm_load_kernel() to set up loading of the kernel, etc.
  * into memory, if requested by the user.
  */
-void wpcm450_load_kernel(MachineState *machine, NPCM7xxState *soc);
+void wpcm450_load_kernel(MachineState *machine, WPCM450State *soc);
 
 #endif /* WPCM450_H */
