@@ -38,16 +38,34 @@
 
 #define WPCM450_MAX_NUM_CPUS    (1)
 
+/* Internal RAMs */
+#define WPCM450_RAM0_BA         (0x00000000)
+#define WPCM450_RAM0_SZ         (8 * KiB)
+
+#define WPCM450_RAM1_BA         (0xc6000000)
+#define WPCM450_RAM1_SZ         (1024)
+
+#define WPCM450_DRAM_MIN_SZ     (128 * MiB)
+#define WPCM450_DRAM_MAX_SZ     (WPCM450_DRAM_MIN_SZ * 4)
+
+#define WPCM450_1DRAM_CONFIG    (WPCM450_DRAM_MIN_SZ * 1)
+#define WPCM450_2DRAM_CONFIG    (WPCM450_DRAM_MIN_SZ * 2)
+#define WPCM450_3DRAM_CONFIG    (WPCM450_DRAM_MIN_SZ * 3)
+#define WPCM450_4DRAM_CONFIG    (WPCM450_DRAM_MIN_SZ * 4)
+
 /* The first half of the address space is reserved for DDR3 DRAM. */
-#define NPCM7XX_DRAM_BA         (0x00000000)
-#define NPCM7XX_DRAM_SZ         (256 * MiB)
+#define WPCM450_DRAM0_BA        (0x00002000)
+#define WPCM450_DRAM1_BA        (WPCM450_DRAM0_BA + WPCM450_1DRAM_CONFIG)
+#define WPCM450_DRAM2_BA        (WPCM450_DRAM0_BA + WPCM450_2DRAM_CONFIG)
+#define WPCM450_DRAM3_BA        (WPCM450_DRAM0_BA + WPCM450_3DRAM_CONFIG)
+#define WPCM450_DRAM_SZ         WPCM450_DRAM_MIN_SZ
 
 /* Magic addresses for setting up direct kernel booting and SMP boot stubs. */
-#define NPCM7XX_LOADER_START            (0x00000000)  /* Start of SDRAM */
-#define NPCM7XX_SMP_LOADER_START        (0xffff0000)  /* Boot ROM */
-#define NPCM7XX_SMP_BOOTREG_ADDR        (0xf080013c)  /* GCR.SCRPAD */
-#define NPCM7XX_GIC_CPU_IF_ADDR         (0xf03fe100)  /* GIC within A9 */
-#define NPCM7XX_BOARD_SETUP_ADDR        (0xffff1000)  /* Boot ROM */
+#define WPCM450_LOADER_START            (0x00000000)  /* Start of SDRAM */
+#define WPCM450_SMP_LOADER_START        (0xffff0000)  /* Boot ROM */
+#define WPCM450_SMP_BOOTREG_ADDR        (0xf080013c)  /* GCR.SCRPAD */
+#define WPCM450_GIC_CPU_IF_ADDR         (0xf03fe100)  /* GIC within A9 */
+#define WPCM450_BOARD_SETUP_ADDR        (0xffff1000)  /* Boot ROM */
 
 #define NPCM7XX_NR_PWM_MODULES 2
 

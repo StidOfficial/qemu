@@ -507,9 +507,9 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     WPCM450Class *nc = WPCM450_GET_CLASS(s);
     int i;
 
-    if (memory_region_size(s->dram) > NPCM7XX_DRAM_SZ) {
+    if (memory_region_size(s->dram) > WPCM450_DRAM_SZ) {
         error_setg(errp, "%s: WPCM450 cannot address more than %" PRIu64
-                   " MiB of DRAM", __func__, NPCM7XX_DRAM_SZ / MiB);
+                   " MiB of DRAM", __func__, WPCM450_DRAM_SZ / MiB);
         return;
     }
 
