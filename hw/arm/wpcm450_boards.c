@@ -87,7 +87,7 @@ static void npcm7xx_connect_dram(WPCM450State *soc, MemoryRegion *dram)
     memory_region_init_ram(dram2, NULL, "dram2", WPCM450_DRAM_MAX_SZ, &error_fatal);
     memory_region_init_ram(dram3, NULL, "dram3", WPCM450_DRAM_MAX_SZ, &error_fatal);
 
-    memory_region_add_subregion_overlap(smem, WPCM450_DRAM0_BA, dram, 1);
+    memory_region_add_subregion(smem, WPCM450_DRAM0_BA, dram);
 
     if(dram->size == WPCM450_1DRAM_CONFIG)
     {
@@ -128,11 +128,11 @@ static WPCM450State *wpcm450_create_soc(MachineState *machine,
 
     /* Internal RAM0 */
     memory_region_init_ram(ram0, NULL, "ram0", WPCM450_RAM0_SZ, &error_fatal);
-    memory_region_add_subregion(get_system_memory(), WPCM450_RAM0_BA, ram0);
+    memory_region_add_subregion_overlap(get_system_memory(), WPCM450_RAM0_BA, ram0, 1);
 
     /* Internal RAM1 */
     memory_region_init_ram(ram1, NULL, "ram1", WPCM450_RAM1_SZ, &error_fatal);
-    memory_region_add_subregion(get_system_memory(), WPCM450_RAM1_BA, ram1);
+    memory_region_add_subregion_overlap(get_system_memory(), WPCM450_RAM1_BA, ram1, 1);
 
     return WPCM450(obj);
 }
