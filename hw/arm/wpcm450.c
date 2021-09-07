@@ -891,4 +891,4 @@ static const TypeInfo wpcm450_soc_types[] = {
     },
 };
 
-DEFINE_TYPES(wpcm450_soc_types);
+DEFINE_TYPES(wpcm450_soc_types)
