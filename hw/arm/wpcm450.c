@@ -41,7 +41,7 @@
 /* Core system modules. */
 #define NPCM7XX_L2C_BA          (0xf03fc000)
 #define NPCM7XX_CPUP_BA         (0xf03fe000)
-#define NPCM7XX_GCR_BA          (0xf0800000)
+#define WPCM450_GCR_BA          (0xb0000000)
 #define WPCM450_CLK_BA          (0xb0000200)
 #define NPCM7XX_MC_BA           (0xf0824000)
 #define NPCM7XX_RNG_BA          (0xf000b000)
@@ -429,11 +429,9 @@ static void wpcm450_init(Object *obj)
 #ifdef IGNORE_A9MPCORE
     object_initialize_child(obj, "a9mpcore", &s->a9mpcore, TYPE_A9MPCORE_PRIV);
 #endif
-#ifdef INGORE_GCR
-    object_initialize_child(obj, "gcr", &s->gcr, TYPE_NPCM7XX_GCR);
-    object_property_add_alias(obj, "power-on-straps", OBJECT(&s->gcr),
-                              "power-on-straps");
-#endif
+    object_initialize_child(obj, "gcr", &s->gcr, TYPE_WPCM450_GCR);
+    /*object_property_add_alias(obj, "power-on-straps", OBJECT(&s->gcr),
+                              "power-on-straps");*/
     object_initialize_child(obj, "clk", &s->clk, TYPE_NPCM7XX_CLK);
 #ifdef IGNORE
     object_initialize_child(obj, "otp1", &s->key_storage,
@@ -553,16 +551,14 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     sysbus_create_simple("l2x0", NPCM7XX_L2C_BA, NULL);
 #endif
 
-#ifdef INGORE_GCR
     /* System Global Control Registers (GCR). Can fail due to user input. */
-    object_property_set_int(OBJECT(&s->gcr), "disabled-modules",
+    /*object_property_set_int(OBJECT(&s->gcr), "disabled-modules",
                             nc->disabled_modules, &error_abort);
-    object_property_add_const_link(OBJECT(&s->gcr), "dram-mr", OBJECT(s->dram));
+    object_property_add_const_link(OBJECT(&s->gcr), "dram-mr", OBJECT(s->dram));*/
     if (!sysbus_realize(SYS_BUS_DEVICE(&s->gcr), errp)) {
         return;
     }
-    sysbus_mmio_map(SYS_BUS_DEVICE(&s->gcr), 0, NPCM7XX_GCR_BA);
-#endif
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->gcr), 0, WPCM450_GCR_BA);
 
     /* Clock Control Registers (CLK). Cannot fail. */
     sysbus_realize(SYS_BUS_DEVICE(&s->clk), &error_abort);
