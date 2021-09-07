@@ -22,7 +22,7 @@
 #include "hw/cpu/a9mpcore.h"
 #include "hw/gpio/npcm7xx_gpio.h"
 #include "hw/i2c/npcm7xx_smbus.h"
-#include "hw/mem/npcm7xx_mc.h"
+#include "hw/mem/wpcm450_mc.h"
 #include "hw/misc/npcm7xx_clk.h"
 #include "hw/misc/wpcm450_gcr.h"
 #include "hw/misc/npcm7xx_mft.h"
@@ -113,7 +113,7 @@ typedef struct WPCM450State {
     NPCM7xxMFTState     mft[8];
     NPCM7xxOTPState     key_storage;
     NPCM7xxOTPState     fuse_array;
-    NPCM7xxMCState      mc;
+    WPCM450MCState      mc;
     NPCM7xxRNGState     rng;
     NPCM7xxGPIOState    gpio[8];
     NPCM7xxSMBusState   smbus[16];

@@ -43,7 +43,7 @@
 #define NPCM7XX_CPUP_BA         (0xf03fe000)
 #define WPCM450_GCR_BA          (0xb0000000)
 #define WPCM450_CLK_BA          (0xb0000200)
-#define NPCM7XX_MC_BA           (0xf0824000)
+#define WPCM450_MC_BA           (0xb0001000)
 #define NPCM7XX_RNG_BA          (0xf000b000)
 
 /* USB Host modules */
@@ -438,7 +438,9 @@ static void wpcm450_init(Object *obj)
                             TYPE_NPCM7XX_KEY_STORAGE);
     object_initialize_child(obj, "otp2", &s->fuse_array,
                             TYPE_NPCM7XX_FUSE_ARRAY);
-    object_initialize_child(obj, "mc", &s->mc, TYPE_NPCM7XX_MC);
+#endif
+    object_initialize_child(obj, "mc", &s->mc, TYPE_WPCM450_MC);
+#ifdef IGNORE
     object_initialize_child(obj, "rng", &s->rng, TYPE_NPCM7XX_RNG);
 #endif
 #ifdef IGNORE_ADC
@@ -571,11 +573,11 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     sysbus_realize(SYS_BUS_DEVICE(&s->fuse_array), &error_abort);
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->fuse_array), 0, NPCM7XX_OTP2_BA);
     npcm7xx_init_fuses(s);
+#endif
 
     /* Fake Memory Controller (MC). Cannot fail. */
     sysbus_realize(SYS_BUS_DEVICE(&s->mc), &error_abort);
-    sysbus_mmio_map(SYS_BUS_DEVICE(&s->mc), 0, NPCM7XX_MC_BA);
-#endif
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->mc), 0, WPCM450_MC_BA);
 
 #ifdef IGNORE_ADC
     /* ADC Modules. Cannot fail. */
