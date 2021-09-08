@@ -20,7 +20,7 @@
 #include "hw/adc/npcm7xx_adc.h"
 #include "hw/core/split-irq.h"
 #include "hw/cpu/a9mpcore.h"
-#include "hw/gpio/npcm7xx_gpio.h"
+#include "hw/gpio/wpcm450_gpio.h"
 #include "hw/i2c/npcm7xx_smbus.h"
 #include "hw/mem/wpcm450_mc.h"
 #include "hw/misc/npcm7xx_clk.h"
@@ -115,7 +115,7 @@ typedef struct WPCM450State {
     NPCM7xxOTPState     fuse_array;
     WPCM450MCState      mc;
     NPCM7xxRNGState     rng;
-    NPCM7xxGPIOState    gpio[8];
+    WPCM450GPIOState    gpio;
     NPCM7xxSMBusState   smbus[16];
     EHCISysBusState     ehci;
     OHCISysBusState     ohci;

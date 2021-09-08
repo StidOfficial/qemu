@@ -44,6 +44,7 @@
 #define WPCM450_GCR_BA          (0xb0000000)
 #define WPCM450_CLK_BA          (0xb0000200)
 #define WPCM450_MC_BA           (0xb0001000)
+#define WPCM450_GPIO_BA         (0xb8003000)
 #define NPCM7XX_RNG_BA          (0xf000b000)
 
 /* USB Host modules */
@@ -451,11 +452,7 @@ static void wpcm450_init(Object *obj)
         object_initialize_child(obj, "tim[*]", &s->tim[i], TYPE_NPCM7XX_TIMER);
     }
 
-#ifdef IGNORE_GPIO
-    for (i = 0; i < ARRAY_SIZE(s->gpio); i++) {
-        object_initialize_child(obj, "gpio[*]", &s->gpio[i], TYPE_NPCM7XX_GPIO);
-    }
-#endif
+    object_initialize_child(obj, "gpio", &s->gpio, TYPE_WPCM450_GPIO);
 
 #ifdef IGNORE_SMBUS
     for (i = 0; i < ARRAY_SIZE(s->smbus); i++) {
@@ -637,26 +634,21 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->rng), 0, NPCM7XX_RNG_BA);
 #endif
 
-#ifdef IGNORE_GPIO
     /* GPIO modules. Cannot fail. */
-    QEMU_BUILD_BUG_ON(ARRAY_SIZE(npcm7xx_gpio) != ARRAY_SIZE(s->gpio));
-    for (i = 0; i < ARRAY_SIZE(s->gpio); i++) {
-        Object *obj = OBJECT(&s->gpio[i]);
+    /*Object *obj = OBJECT(&s->gpio[i]);
 
-        object_property_set_uint(obj, "reset-pullup",
-                                 npcm7xx_gpio[i].reset_pu, &error_abort);
-        object_property_set_uint(obj, "reset-pulldown",
-                                 npcm7xx_gpio[i].reset_pd, &error_abort);
-        object_property_set_uint(obj, "reset-osrc",
-                                 npcm7xx_gpio[i].reset_osrc, &error_abort);
-        object_property_set_uint(obj, "reset-odsc",
-                                 npcm7xx_gpio[i].reset_odsc, &error_abort);
-        sysbus_realize(SYS_BUS_DEVICE(obj), &error_abort);
-        sysbus_mmio_map(SYS_BUS_DEVICE(obj), 0, npcm7xx_gpio[i].regs_addr);
-        sysbus_connect_irq(SYS_BUS_DEVICE(obj), 0,
-                           npcm7xx_irq(s, NPCM7XX_GPIO0_IRQ + i));
-    }
-#endif
+    object_property_set_uint(obj, "reset-pullup",
+                                npcm7xx_gpio[i].reset_pu, &error_abort);
+    object_property_set_uint(obj, "reset-pulldown",
+                                npcm7xx_gpio[i].reset_pd, &error_abort);
+    object_property_set_uint(obj, "reset-osrc",
+                                npcm7xx_gpio[i].reset_osrc, &error_abort);
+    object_property_set_uint(obj, "reset-odsc",
+                                npcm7xx_gpio[i].reset_odsc, &error_abort);*/
+    sysbus_realize(SYS_BUS_DEVICE(&s->gpio), &error_abort);
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->gpio), 0, WPCM450_GPIO_BA);
+    /*sysbus_connect_irq(SYS_BUS_DEVICE(obj), 0,
+                        npcm7xx_irq(s, NPCM7XX_GPIO0_IRQ + i));*/
 
 #ifdef IGNORE_SMBUS
     /* SMBus modules. Cannot fail. */
