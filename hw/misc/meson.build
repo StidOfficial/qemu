@@ -64,7 +64,10 @@ softmmu_ss.add(when: 'CONFIG_NPCM7XX', if_true: files(
   'npcm7xx_pwm.c',
   'npcm7xx_rng.c',
 ))
-softmmu_ss.add(when: 'CONFIG_WPCM450', if_true: files('wpcm450_gcr.c'))
+softmmu_ss.add(when: 'CONFIG_WPCM450', if_true: files(
+  'wpcm450_gcr.c',
+  'wpcm450_cpld.c'
+))
 softmmu_ss.add(when: 'CONFIG_OMAP', if_true: files(
   'omap_clk.c',
   'omap_gpmc.c',

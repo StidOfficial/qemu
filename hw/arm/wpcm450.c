@@ -64,6 +64,11 @@
 #define NPCM7XX_ROM_BA          (0xffff0000)
 #define NPCM7XX_ROM_SZ          (4 * KiB)
 
+/* CPLD */
+#define WPCM450_CPLD_BA         (0xc4000000)
+
+/* Shared Memory Core Control Register */
+#define WPCM450_SMC_BA          (0xc8001001)
 
 /* Clock configuration values to be fixed up when bypassing bootloader */
 
@@ -447,6 +452,8 @@ static void wpcm450_init(Object *obj)
 #ifdef IGNORE_ADC
     object_initialize_child(obj, "adc", &s->adc, TYPE_NPCM7XX_ADC);
 #endif
+    object_initialize_child(obj, "clpd", &s->cpld, TYPE_WPCM450_CPLD);
+    object_initialize_child(obj, "smc", &s->smc, TYPE_WPCM450_SMC);
 
     for (i = 0; i < ARRAY_SIZE(s->tim); i++) {
         object_initialize_child(obj, "tim[*]", &s->tim[i], TYPE_NPCM7XX_TIMER);
@@ -586,6 +593,14 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
             npcm7xx_irq(s, NPCM7XX_ADC_IRQ));
     npcm7xx_write_adc_calibration(s);
 #endif
+
+    /* CPLD (CPLD). Cannot fail. */
+    sysbus_realize(SYS_BUS_DEVICE(&s->cpld), &error_abort);
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->cpld), 0, WPCM450_CPLD_BA);
+
+    /* Shared Memory Core Control Register (SMC). Cannot fail. */
+    sysbus_realize(SYS_BUS_DEVICE(&s->smc), &error_abort);
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->smc), 0, WPCM450_SMC_BA);
 
     /* Timer Modules (TIM). Cannot fail. */
     QEMU_BUILD_BUG_ON(ARRAY_SIZE(wpcm450_tim_addr) != ARRAY_SIZE(s->tim));

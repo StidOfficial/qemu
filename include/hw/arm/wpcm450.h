@@ -36,6 +36,9 @@
 #include "hw/usb/hcd-ohci.h"
 #include "target/arm/cpu.h"
 
+#include "hw/misc/wpcm450_cpld.h"
+#include "hw/mem/wpcm450_smc.h"
+
 #define WPCM450_MAX_NUM_CPUS    (1)
 
 /* Internal RAMs */
@@ -121,6 +124,9 @@ typedef struct WPCM450State {
     OHCISysBusState     ohci;
     NPCM7xxFIUState     fiu[2];
     NPCM7xxEMCState     emc[2];
+
+    WPCM450CPLDState cpld;
+    WPCM450SMCState smc;
 } WPCM450State;
 
 #define TYPE_WPCM450    "wpcm450"
