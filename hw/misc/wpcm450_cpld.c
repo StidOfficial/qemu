@@ -16,12 +16,80 @@
 #include "qemu/module.h"
 #include "qemu/log.h"
 
+enum WPCM450PlatformID {
+    WPCM450_PLATFORM_ID_BLUEFISH,
+    WPCM450_PLATFORM_ID_THIDWICK,
+    WPCM450_PLATFORM_ID_SNEETCH,
+    WPCM450_PLATFORM_ID_MACK,
+
+    // Blade
+    WPCM450_PLATFORM_ID_BARBALOOT,
+    WPCM450_PLATFORM_ID_ZOOKS,
+    WPCM450_PLATFORM_ID_MCCAVE,
+
+    // MASER Lite
+    WPCM450_PLATFORM_ID_YERTLE,
+    WPCM450_PLATFORM_ID_CINDYLOU,
+    WPCM450_PLATFORM_ID_MCBEAN,
+    WPCM450_PLATFORM_ID_MAYZIE,
+    WPCM450_PLATFORM_ID_SAMIAM,
+    WPCM450_PLATFORM_ID_HORTON,
+    
+    WPCM450_PLATFORM_ID_UNSED_0,
+    WPCM450_PLATFORM_ID_UNSED_1,
+
+    WPCM450_PLATFORM_ID_BRUTUS,
+    WPCM450_PLATFORM_ID_CLOVER,
+
+    WPCM450_PLATFORM_ID_UNSED_2,
+
+    WPCM450_PLATFORM_ID_SKIPPER,
+    WPCM450_PLATFORM_ID_SLINKY,
+    WPCM450_PLATFORM_ID_DIAMAS,
+    WPCM450_PLATFORM_ID_COASTER,
+
+    WPCM450_PLATFORM_ID_UNKNOWN = 0xff,
+};
+
+#define PLATFORM_ID             0x3
+#define AMEA                    0x12
+#define EXTENDED_PLATFORM_ID    0x22
+
 static uint64_t wpcm450_cpld_mem_read(void *opaque, hwaddr offset,
                                     unsigned size)
 {
-    qemu_log_mask(LOG_UNIMP,
+    uint8_t temp;
+    uint8_t byte = 0xff;
+
+    uint8_t platform_id = WPCM450_PLATFORM_ID_THIDWICK;
+    bool amea_present = false;
+
+    switch(offset) {
+        case PLATFORM_ID:
+            for(int i = 0; i < 4; i++) {
+                temp = ((platform_id >> i) & 1) << i;
+                byte &= ~(1 << i);
+                byte |= temp;
+            }
+
+            return byte; // bit 0-3
+        case AMEA:
+            temp = ((!amea_present >> 0) & 1) << 1;
+            byte &= ~(1 << 1);
+            byte |= temp;
+
+            return byte; // bit 1; 0 = Present, 1 = Non present
+        case EXTENDED_PLATFORM_ID:
+            temp = ((platform_id >> 4) & 1) << 2;
+            byte &= ~(1 << 2);
+            byte |= temp;
+
+            return byte; // bit 1
+        default:
+            qemu_log_mask(LOG_UNIMP,
                     "%s: register @ 0x%04" HWADDR_PRIx " is unimplemented\n",
                     __func__, offset);
+    }
 
     return 0;
 }
