@@ -29,6 +29,10 @@ static uint64_t wpcm450_gpio_mem_read(void *opaque, hwaddr offset,
         return 0;
     }
 
+    qemu_log_mask(LOG_UNIMP,
+                    "%s: register @ 0x%04" HWADDR_PRIx " is unimplemented\n",
+                    __func__, offset);
+
     return s->regs[reg];
 }
 
@@ -44,6 +48,10 @@ static void wpcm450_gpio_mem_write(void *opaque, hwaddr offset,
                         __func__, offset);
         return;
     }
+
+    qemu_log_mask(LOG_UNIMP,
+                    "%s: register @ 0x%04" HWADDR_PRIx " is unimplemented\n",
+                    __func__, offset);
 
     /*switch(reg) {
         case WPCM450_GCR_PDID:
