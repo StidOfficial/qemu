@@ -230,13 +230,11 @@ static const hwaddr npcm7xx_smbus_addr[] = {
 };
 #endif
 
-#ifdef IGNORE_EMC
 /* Register base address for each EMC Module */
-static const hwaddr npcm7xx_emc_addr[] = {
-    0xf0825000,
-    0xf0826000,
+static const hwaddr wpcm450_emc_addr[] = {
+    0xb0002000,
+    0xb0003000,
 };
-#endif
 
 #ifdef IGNORE_GPIO
 static const struct {
@@ -493,11 +491,9 @@ static void wpcm450_init(Object *obj)
     }
 #endif
 
-#ifdef IGNORE_EMC
     for (i = 0; i < ARRAY_SIZE(s->emc); i++) {
         object_initialize_child(obj, "emc[*]", &s->emc[i], TYPE_NPCM7XX_EMC);
     }
-#endif
 }
 
 static void wpcm450_realize(DeviceState *dev, Error **errp)
@@ -734,7 +730,7 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
      * emc device: it's not pluggable and thus the -device option can't be
      * used.
      */
-    QEMU_BUILD_BUG_ON(ARRAY_SIZE(npcm7xx_emc_addr) != ARRAY_SIZE(s->emc));
+    QEMU_BUILD_BUG_ON(ARRAY_SIZE(wpcm450_emc_addr) != ARRAY_SIZE(s->emc));
     QEMU_BUILD_BUG_ON(ARRAY_SIZE(s->emc) != 2);
     for (i = 0; i < ARRAY_SIZE(s->emc); i++) {
         s->emc[i].emc_num = i;
@@ -749,7 +745,8 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
          * backend.
          */
         sysbus_realize(sbd, &error_abort);
-        sysbus_mmio_map(sbd, 0, npcm7xx_emc_addr[i]);
+        sysbus_mmio_map(sbd, 0, wpcm450_emc_addr[i]);
+#ifdef IGNORE
         int tx_irq = i == 0 ? NPCM7XX_EMC1TX_IRQ : NPCM7XX_EMC2TX_IRQ;
         int rx_irq = i == 0 ? NPCM7XX_EMC1RX_IRQ : NPCM7XX_EMC2RX_IRQ;
         /*
@@ -758,8 +755,8 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
          */
         sysbus_connect_irq(sbd, 0, npcm7xx_irq(s, tx_irq));
         sysbus_connect_irq(sbd, 1, npcm7xx_irq(s, rx_irq));
-    }
 #endif
+    }
 
 #ifdef IGNORE_FIU
     /*
