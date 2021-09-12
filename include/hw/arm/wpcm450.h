@@ -39,6 +39,8 @@
 #include "hw/misc/wpcm450_cpld.h"
 #include "hw/mem/wpcm450_smc.h"
 
+#include "hw/intc/wpcm450_aic.h"
+
 #define WPCM450_MAX_NUM_CPUS    (1)
 
 /* Internal RAMs */
@@ -127,6 +129,8 @@ typedef struct WPCM450State {
 
     WPCM450CPLDState cpld;
     WPCM450SMCState smc;
+
+    WPCM450AICState aic;
 } WPCM450State;
 
 #define TYPE_WPCM450    "wpcm450"

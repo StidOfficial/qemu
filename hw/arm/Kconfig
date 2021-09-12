@@ -412,6 +412,7 @@ config WPCM450
     select SSI
     select UNIMP
     select PCA954X
+    select WPCM450_AIC
 
 config FSL_IMX25
     bool

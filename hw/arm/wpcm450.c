@@ -70,6 +70,9 @@
 /* Shared Memory Core Control Register */
 #define WPCM450_SMC_BA          (0xc8001001)
 
+/* Advance Interrupt Controller */
+#define WPCM450_AIC_BA          (0xb8002000)
+
 /* Clock configuration values to be fixed up when bypassing bootloader */
 
 /* Run PLL1 at 1600 MHz */
@@ -452,6 +455,7 @@ static void wpcm450_init(Object *obj)
 #endif
     object_initialize_child(obj, "clpd", &s->cpld, TYPE_WPCM450_CPLD);
     object_initialize_child(obj, "smc", &s->smc, TYPE_WPCM450_SMC);
+    object_initialize_child(obj, "aic", &s->aic, TYPE_WPCM450_AIC);
 
     for (i = 0; i < ARRAY_SIZE(s->tim); i++) {
         object_initialize_child(obj, "tim[*]", &s->tim[i], TYPE_NPCM7XX_TIMER);
@@ -598,6 +602,10 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     sysbus_realize(SYS_BUS_DEVICE(&s->smc), &error_abort);
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->smc), 0, WPCM450_SMC_BA);
 
+    /* Advanced Interrupt Controller (AIC). Cannot fail. */
+    sysbus_realize(SYS_BUS_DEVICE(&s->aic), &error_abort);
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->aic), 0, WPCM450_AIC_BA);
+
     /* Timer Modules (TIM). Cannot fail. */
     QEMU_BUILD_BUG_ON(ARRAY_SIZE(wpcm450_tim_addr) != ARRAY_SIZE(s->tim));
     for (i = 0; i < ARRAY_SIZE(s->tim); i++) {
@@ -721,7 +729,6 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     }
 #endif
 
-#ifdef IGNORE_EMC
     /*
      * EMC Modules. Cannot fail.
      * The mapping of the device to its netdev backend works as follows:
