@@ -158,7 +158,6 @@ static void at24c_eeprom_init(WPCM450State *soc, int bus, uint8_t addr,
 }
 #endif
 
-#ifdef IGNORE_PWM
 static void npcm7xx_init_pwm_splitter(WPCM450Machine *machine,
                                       WPCM450State *soc, const int *fan_counts)
 {
@@ -168,7 +167,7 @@ static void npcm7xx_init_pwm_splitter(WPCM450Machine *machine,
      * PWM 0~3 belong to module 0 output 0~3.
      * PWM 4~7 belong to module 1 output 0~3.
      */
-    for (int i = 0; i < NPCM7XX_NR_PWM_MODULES; ++i) {
+    for (int i = 0; i < WPCM450_NR_PWM_MODULES; ++i) {
         for (int j = 0; j < NPCM7XX_PWM_PER_MODULE; ++j) {
             int splitter_no = i * NPCM7XX_PWM_PER_MODULE + j;
             DeviceState *splitter;
@@ -191,6 +190,7 @@ static void npcm7xx_init_pwm_splitter(WPCM450Machine *machine,
 static void npcm7xx_connect_pwm_fan(WPCM450State *soc, SplitIRQ *splitter,
                                     int fan_no, int output_no)
 {
+#ifdef IGNORE
     DeviceState *fan;
     int fan_input;
     qemu_irq fan_duty_gpio;
@@ -215,8 +215,8 @@ static void npcm7xx_connect_pwm_fan(WPCM450State *soc, SplitIRQ *splitter,
     /* Connect the Fan to PWM module */
     fan_duty_gpio = qdev_get_gpio_in_named(fan, "duty", fan_input);
     qdev_connect_gpio_out(DEVICE(splitter), output_no, fan_duty_gpio);
-}
 #endif
+}
 
 #ifdef IGNORE_SMBUS
 static void idrac6_bmc_i2c_init(WPCM450State *soc)
@@ -232,7 +232,6 @@ static void idrac6_bmc_i2c_init(WPCM450State *soc)
 }
 #endif
 
-#ifdef IGNORE_PWM
 static void idrac6_bmc_fan_init(WPCM450Machine *machine, WPCM450State *soc)
 {
     SplitIRQ *splitter = machine->fan_splitter;
@@ -256,7 +255,6 @@ static void idrac6_bmc_fan_init(WPCM450Machine *machine, WPCM450State *soc)
     npcm7xx_connect_pwm_fan(soc, &splitter[7], 0x0e, 0);
     npcm7xx_connect_pwm_fan(soc, &splitter[7], 0x0f, 1);
 }
-#endif
 
 #ifdef IGNORE
 static void quanta_gsj_i2c_init(WPCM450State *soc)
@@ -379,9 +377,7 @@ static void idrac6_bmc_init(MachineState *machine)
 #ifdef IGNORE_SMBUS
     idrac6_bmc_i2c_init(soc);
 #endif
-#ifdef IGNORE_PWM
     idrac6_bmc_fan_init(WPCM450_MACHINE(machine), soc);
-#endif
     wpcm450_load_kernel(machine, soc);
 }
 

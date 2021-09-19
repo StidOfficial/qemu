@@ -72,7 +72,7 @@
 #define WPCM450_GIC_CPU_IF_ADDR         (0xf03fe100)  /* GIC within A9 */
 #define WPCM450_BOARD_SETUP_ADDR        (0xffff1000)  /* Boot ROM */
 
-#define NPCM7XX_NR_PWM_MODULES 2
+#define WPCM450_NR_PWM_MODULES 2
 
 typedef struct WPCM450Machine {
     MachineState        parent;
@@ -80,7 +80,7 @@ typedef struct WPCM450Machine {
      * PWM fan splitter. each splitter connects to one PWM output and
      * multiple MFT inputs.
      */
-    SplitIRQ            fan_splitter[NPCM7XX_NR_PWM_MODULES *
+    SplitIRQ            fan_splitter[WPCM450_NR_PWM_MODULES *
                                      NPCM7XX_PWM_PER_MODULE];
 } WPCM450Machine;
 
@@ -114,10 +114,10 @@ typedef struct WPCM450State {
     NPCM7xxCLKState     clk;
     NPCM7xxTimerCtrlState tim[1];
     NPCM7xxADCState     adc;
-    NPCM7xxPWMState     pwm[NPCM7XX_NR_PWM_MODULES];
     NPCM7xxMFTState     mft[8];
     NPCM7xxOTPState     key_storage;
     NPCM7xxOTPState     fuse_array;
+    NPCM7xxPWMState     pwm[WPCM450_NR_PWM_MODULES];
     WPCM450MCState      mc;
     NPCM7xxRNGState     rng;
     WPCM450GPIOState    gpio;

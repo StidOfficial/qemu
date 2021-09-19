@@ -189,13 +189,11 @@ static const hwaddr npcm7xx_fiu3_flash_addr[] = {
 };
 #endif
 
-#ifdef IGNORE
 /* Register base address for each PWM Module */
-static const hwaddr npcm7xx_pwm_addr[] = {
-    0xf0103000,
-    0xf0104000,
+static const hwaddr wpcm450_pwm_addr[] = {
+    0xb8007000,
+    0xb8007100,
 };
-#endif
 
 #ifdef IGNORE_MFT
 /* Register base address for each MFT Module */
@@ -483,11 +481,9 @@ static void wpcm450_init(Object *obj)
     }
 #endif
 
-#ifdef IGNORE_PWM
     for (i = 0; i < ARRAY_SIZE(s->pwm); i++) {
         object_initialize_child(obj, "pwm[*]", &s->pwm[i], TYPE_NPCM7XX_PWM);
     }
-#endif
 
 #ifdef IGNORE_MFT
     for (i = 0; i < ARRAY_SIZE(s->mft); i++) {
@@ -700,19 +696,17 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
                        npcm7xx_irq(s, NPCM7XX_OHCI_IRQ));
 #endif
 
-#ifdef IGNORE_PWM
     /* PWM Modules. Cannot fail. */
-    QEMU_BUILD_BUG_ON(ARRAY_SIZE(npcm7xx_pwm_addr) != ARRAY_SIZE(s->pwm));
+    QEMU_BUILD_BUG_ON(ARRAY_SIZE(wpcm450_pwm_addr) != ARRAY_SIZE(s->pwm));
     for (i = 0; i < ARRAY_SIZE(s->pwm); i++) {
         SysBusDevice *sbd = SYS_BUS_DEVICE(&s->pwm[i]);
 
         qdev_connect_clock_in(DEVICE(&s->pwm[i]), "clock", qdev_get_clock_out(
                     DEVICE(&s->clk), "apb3-clock"));
         sysbus_realize(sbd, &error_abort);
-        sysbus_mmio_map(sbd, 0, npcm7xx_pwm_addr[i]);
-        sysbus_connect_irq(sbd, i, npcm7xx_irq(s, NPCM7XX_PWM0_IRQ + i));
+        sysbus_mmio_map(sbd, 0, wpcm450_pwm_addr[i]);
+        //sysbus_connect_irq(sbd, i, npcm7xx_irq(s, NPCM7XX_PWM0_IRQ + i));
     }
-#endif
 
 #ifdef IGNORE_MFT
     /* MFT Modules. Cannot fail. */
