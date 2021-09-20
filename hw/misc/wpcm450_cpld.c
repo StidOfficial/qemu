@@ -16,6 +16,26 @@
 #include "qemu/module.h"
 #include "qemu/log.h"
 
+/*
+0x3 - bit 0-3 (platform id)
+
+0x12 - bit 1 (AMEA is present)
+
+0x21 - bit 0-2 -> 3 (Serial MUX)
+
+#define CPLD_MUX_MODE_1     3 (011)
+#define CPLD_MUX_MODE_2A    0 (000)
+#define CPLD_MUX_MODE_2A_S  4 (100)
+#define CPLD_MUX_MODE_2B    1 (001)
+#define CPLD_MUX_MODE_2C    2 (010)
+
+0x22 - bit 5 (extended platform id)
+
+0x27 - bit 1 (System power on)
+0 = Enable
+1 = Disable
+*/
+
 enum WPCM450PlatformID {
     WPCM450_PLATFORM_ID_BLUEFISH,
     WPCM450_PLATFORM_ID_THIDWICK,
