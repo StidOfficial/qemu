@@ -44,6 +44,7 @@
 #define WPCM450_GCR_BA          (0xb0000000)
 #define WPCM450_CLK_BA          (0xb0000200)
 #define WPCM450_MC_BA           (0xb0001000)
+#define WPCM450_TMR_BA          (0xb8001000)
 #define WPCM450_GPIO_BA         (0xb8003000)
 #define NPCM7XX_RNG_BA          (0xf000b000)
 
@@ -161,11 +162,6 @@ enum WPCM45Interrupt {
 
 /* Total number of GIC interrupts, including internal ARM926EJ-S interrupts. */
 #define NPCM7XX_NUM_IRQ         (64) // 32, cause problems with GIC
-
-/* Register base address for each Timer Module */
-static const hwaddr wpcm450_tim_addr[] = {
-    0xb8001000,
-};
 
 /* Register base address for each 16550 UART */
 static const hwaddr wpcm450_uart_addr[] = {
@@ -455,9 +451,7 @@ static void wpcm450_init(Object *obj)
     object_initialize_child(obj, "smc", &s->smc, TYPE_WPCM450_SMC);
     object_initialize_child(obj, "aic", &s->aic, TYPE_WPCM450_AIC);
 
-    for (i = 0; i < ARRAY_SIZE(s->tim); i++) {
-        object_initialize_child(obj, "tim[*]", &s->tim[i], TYPE_NPCM7XX_TIMER);
-    }
+    object_initialize_child(obj, "tim", &s->tim, TYPE_NPCM7XX_TIMER);
 
     object_initialize_child(obj, "gpio", &s->gpio, TYPE_WPCM450_GPIO);
 
@@ -500,6 +494,7 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
 {
     WPCM450State *s = WPCM450(dev);
     WPCM450Class *nc = WPCM450_GET_CLASS(s);
+    SysBusDevice *sbd;
     int i;
 
     if (memory_region_size(s->dram) > WPCM450_DRAM_MAX_SZ) {
@@ -603,38 +598,35 @@ static void wpcm450_realize(DeviceState *dev, Error **errp)
     sysbus_mmio_map(SYS_BUS_DEVICE(&s->aic), 0, WPCM450_AIC_BA);
 
     /* Timer Modules (TIM). Cannot fail. */
-    QEMU_BUILD_BUG_ON(ARRAY_SIZE(wpcm450_tim_addr) != ARRAY_SIZE(s->tim));
-    for (i = 0; i < ARRAY_SIZE(s->tim); i++) {
-        SysBusDevice *sbd = SYS_BUS_DEVICE(&s->tim[i]);
+    sbd = SYS_BUS_DEVICE(&s->tim);
 #ifdef IGNORE
-        int first_irq;
-        int j;
+    int first_irq;
+    int j;
 #endif
 
-        /* Connect the timer clock. */
-        qdev_connect_clock_in(DEVICE(&s->tim[i]), "clock", qdev_get_clock_out(
-                    DEVICE(&s->clk), "timer-clock"));
+    /* Connect the timer clock. */
+    qdev_connect_clock_in(DEVICE(&s->tim), "clock", qdev_get_clock_out(
+                DEVICE(&s->clk), "timer-clock"));
 
-        sysbus_realize(sbd, &error_abort);
-        sysbus_mmio_map(sbd, 0, wpcm450_tim_addr[i]);
+    sysbus_realize(sbd, &error_abort);
+    sysbus_mmio_map(sbd, 0, WPCM450_TMR_BA);
 
 #ifdef IGNORE
-        first_irq = NPCM7XX_TIMER0_IRQ + i * NPCM7XX_TIMERS_PER_CTRL;
-        for (j = 0; j < NPCM7XX_TIMERS_PER_CTRL; j++) {
-            qemu_irq irq = npcm7xx_irq(s, first_irq + j);
-            sysbus_connect_irq(sbd, j, irq);
-        }
-
-        /* IRQ for watchdogs */
-        sysbus_connect_irq(sbd, NPCM7XX_TIMERS_PER_CTRL,
-                npcm7xx_irq(s, NPCM7XX_WDG0_IRQ + i));
-#endif
-        /* GPIO that connects clk module with watchdog */
-        qdev_connect_gpio_out_named(DEVICE(&s->tim[i]),
-                NPCM7XX_WATCHDOG_RESET_GPIO_OUT, 0,
-                qdev_get_gpio_in_named(DEVICE(&s->clk),
-                        NPCM7XX_WATCHDOG_RESET_GPIO_IN, i));
+    first_irq = NPCM7XX_TIMER0_IRQ + i * NPCM7XX_TIMERS_PER_CTRL;
+    for (j = 0; j < NPCM7XX_TIMERS_PER_CTRL; j++) {
+        qemu_irq irq = npcm7xx_irq(s, first_irq + j);
+        sysbus_connect_irq(sbd, j, irq);
     }
+
+    /* IRQ for watchdogs */
+    sysbus_connect_irq(sbd, NPCM7XX_TIMERS_PER_CTRL,
+            npcm7xx_irq(s, NPCM7XX_WDG0_IRQ + i));
+#endif
+    /* GPIO that connects clk module with watchdog */
+    qdev_connect_gpio_out_named(DEVICE(&s->tim),
+            NPCM7XX_WATCHDOG_RESET_GPIO_OUT, 0,
+            qdev_get_gpio_in_named(DEVICE(&s->clk),
+                    NPCM7XX_WATCHDOG_RESET_GPIO_IN, 0));
 
     /* UART0..1 (16550 compatible) */
     for (i = 0; i < ARRAY_SIZE(wpcm450_uart_addr); i++) {
