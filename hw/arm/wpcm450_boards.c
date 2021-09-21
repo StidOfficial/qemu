@@ -79,30 +79,34 @@ static void npcm7xx_connect_flash(NPCM7xxFIUState *fiu, int cs_no,
 static void npcm7xx_connect_dram(WPCM450State *soc, MemoryRegion *dram)
 {
     MemoryRegion *smem = get_system_memory();
-    MemoryRegion *dram1 = g_new(MemoryRegion, 1);
-    MemoryRegion *dram2 = g_new(MemoryRegion, 1);
-    MemoryRegion *dram3 = g_new(MemoryRegion, 1);
-
-    memory_region_init_ram(dram1, NULL, "dram1", WPCM450_DRAM_MAX_SZ, &error_fatal);
-    memory_region_init_ram(dram2, NULL, "dram2", WPCM450_DRAM_MAX_SZ, &error_fatal);
-    memory_region_init_ram(dram3, NULL, "dram3", WPCM450_DRAM_MAX_SZ, &error_fatal);
+    MemoryRegion *dram1;
+    MemoryRegion *dram2;
+    MemoryRegion *dram3;
 
     memory_region_add_subregion(smem, WPCM450_DRAM0_BA, dram);
+    object_property_set_link(OBJECT(soc), "dram-mr", OBJECT(dram),
+                                &error_abort);
 
     if(dram->size == WPCM450_1DRAM_CONFIG)
     {
+        dram1 = g_new(MemoryRegion, 1);
+
+        memory_region_init_ram(dram1, NULL, "dram1", WPCM450_DRAM_MIN_SZ, &error_fatal);
         memory_region_init_alias(dram1, NULL, "dram1", dram, 0x0, WPCM450_DRAM_MIN_SZ);
         memory_region_add_subregion(smem, WPCM450_DRAM1_BA, dram1);
 
+        dram2 = g_new(MemoryRegion, 1);
+
+        memory_region_init_ram(dram2, NULL, "dram2", WPCM450_DRAM_MIN_SZ, &error_fatal);
         memory_region_init_alias(dram2, NULL, "dram2", dram, 0x0, WPCM450_DRAM_MIN_SZ);
         memory_region_add_subregion(smem, WPCM450_DRAM2_BA, dram2);
 
+        dram3 = g_new(MemoryRegion, 1);
+
+        memory_region_init_ram(dram3, NULL, "dram3", WPCM450_DRAM_MIN_SZ, &error_fatal);
         memory_region_init_alias(dram3, NULL, "dram3", dram, 0x0, WPCM450_DRAM_MIN_SZ);
         memory_region_add_subregion(smem, WPCM450_DRAM3_BA, dram3);
     }
-
-    object_property_set_link(OBJECT(soc), "dram-mr", OBJECT(dram),
-                             &error_abort);
 }
 
 static WPCM450State *wpcm450_create_soc(MachineState *machine,
